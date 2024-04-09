@@ -32,7 +32,7 @@ const locationController = {
         name: req.body.name,
         address: req.body.address,
         phone: req.body.phone,
-        devices: [deviceIds], // Assign the array of device IDs directly
+        devices: [...new Set(deviceIds)],
       });
 
       const newLocation = await location.save();
@@ -45,15 +45,23 @@ const locationController = {
   // Update a location by ID
   updateLocation: async (req, res) => {
     try {
-      const location = await Location.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
+      const location = await Location.findById(req.params.id);
       if (!location) {
         return res.status(404).json({ message: "Location not found" });
       }
-      res.json(location);
+
+      location.name = req.body.name || location.name;
+      location.address = req.body.address || location.address;
+      location.phone = req.body.phone || location.phone;
+
+      if (req.body.devices) {
+        const uniqueDeviceIds = [...new Set(req.body.devices)];
+        location.devices = uniqueDeviceIds;
+      }
+
+      const updatedLocation = await location.save();
+
+      res.json(updatedLocation);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
