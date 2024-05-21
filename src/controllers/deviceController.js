@@ -8,6 +8,7 @@ const deviceController = {
       const devices = await Device.find();
       res.json(devices);
     } catch (error) {
+      console.error("Error fetching devices:", error);
       res.status(500).json({ message: error.message });
     }
   },
