@@ -45,6 +45,26 @@ mongoose
 
 app.use("/locations", locationRoutes);
 app.use("/devices", deviceRoutes);
+app.use("/api/token", (req, res) => {
+  const options = {
+    method: "POST",
+    url: "https://dev-3uriluzll4q5ecyt.us.auth0.com/oauth/token",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      client_id: process.env.AUTH0_CLIENT_ID,
+      client_secret: process.env.AUTH0_CLIENT_SECRET,
+      audience: "https://dev-3uriluzll4q5ecyt.us.auth0.com/api/v2/",
+      grant_type: "client_credentials",
+    }),
+  };
+
+  request(options, (error, response, body) => {
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(JSON.parse(body));
+  });
+});
 
 // Default route
 app.get("/", (req, res) => {
