@@ -45,30 +45,49 @@ mongoose
 
 app.use("/locations", locationRoutes);
 app.use("/devices", deviceRoutes);
-app.use("/api/token", (req, res) => {
-  const options = {
-    method: "POST",
-    url: "https://dev-3uriluzll4q5ecyt.us.auth0.com/oauth/token",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      client_id: process.env.AUTH0_CLIENT_ID,
-      client_secret: process.env.AUTH0_CLIENT_SECRET,
-      audience: "https://dev-3uriluzll4q5ecyt.us.auth0.com/api/v2/",
-      grant_type: "client_credentials",
-    }),
-  };
+// app.get("/api/token", (req, res) => {
+//   const options = {
+//     method: "POST",
+//     url: "https://dev-3uriluzll4q5ecyt.us.auth0.com/oauth/token",
+//     headers: { "content-type": "application/json" },
+//     body: JSON.stringify({
+//       client_id: process.env.AUTH0_CLIENT_ID,
+//       client_secret: process.env.AUTH0_CLIENT_SECRET,
+//       audience: "https://dev-3uriluzll4q5ecyt.us.auth0.com/api/v2/",
+//       grant_type: "client_credentials",
+//     }),
+//   };
 
-  request(options, (error, response, body) => {
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-    res.json(JSON.parse(body));
-  });
-});
+//   request(options, (error, response, body) => {
+//     if (error) {
+//       return res.status(500).json({ error: error.message });
+//     }
+//     res.json(JSON.parse(body));
+//   });
+// });
 
-// Default route
+const { auth } = require("express-openid-connect");
+const { requiresAuth } = require("express-openid-connect");
+
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: "a long, randomly-generated string stored in env",
+  baseURL: "http://localhost:3000/",
+  clientID: "zKXVGpHbs33QQe2Mm35y4XrcAYn023oe",
+  issuerBaseURL: "https://dev-3uriluzll4q5ecyt.us.auth0.com",
+};
+
+// auth router attaches /login, /logout, and /callback routes to the baseURL
+app.use(auth(config));
+
+// req.isAuthenticated is provided from the auth router
 app.get("/", (req, res) => {
-  res.send("Welcome to the Location and Device Management API");
+  let { token_type, access_token } = req.oidc.accessToken;
+  res.send(req.oidc.isAuthenticated() ? "Logged in" : "Logged out");
+});
+app.get("/profile", requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user));
 });
 
 // Error handling middleware

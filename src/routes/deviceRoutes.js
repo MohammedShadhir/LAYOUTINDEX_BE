@@ -20,14 +20,9 @@ const storage = multer.diskStorage({
   },
 });
 
-const checksJwt = auth({
-  audience: process.env.AUTH0_AUDIENCE,
-  issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-});
-
 const upload = multer({ storage: storage });
 console.log(process.env.AUTH0_AUDIENCE, process.env.AUTH0_DOMAIN);
-router.get("/", checksJwt, deviceController.getAllDevices);
+router.get("/", checkJwt, deviceController.getAllDevices);
 router.get("/:id", checkJwt, deviceController.getDeviceById);
 router.post(
   "/createdevice",
